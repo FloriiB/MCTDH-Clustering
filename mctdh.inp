@@ -1,0 +1,133 @@
+#######################################################################
+###                  Janus complex
+###           LVC coupling model based on (alpha,omega)-LC-BLYP             
+#######################################################################
+
+ALLOC-SECTION
+maxpar    =     60000
+maxfac    =      5000
+maxsub    =       183
+maxkoe    =    100000
+maxhop    =     50000
+maxhtm    =     50000
+maxsub    =       250
+maxnhtmshift =     20
+end-alloc-section
+
+
+RUN-SECTION
+propagation
+name = mctdh
+tfinal =2000.0 tout =50.0
+graphviz
+end-run-section
+
+OPERATOR-SECTION
+opname = mctdh
+alter-parameters
+#field_parameters (gaussian pulse E(t)=E0*cos(omega*t)*exp(-(t-T0)^2/(2*C^2);
+# FWHM=2*sqrt(2*ln(2))*C; notation SIG:=1/2*C^2)
+omega = 2.34, ev # <carrier frequency> 
+E0  = 0.0015, au # <field amplitude> , au  # amplitude
+T0  = 100.0 , fs # <time>  , fs 
+C   = 24.0, fs #<width> (24=40fs FWHM of E^2)
+        SIG = 0.5/C/C
+    end-alter-parameters
+end-operator-section
+
+
+#Zerlegung in Binärbaum, 2 Cluster auf allen Ebenen
+
+ML-basis-section
+
+0> 9 8 8
+	# electronic
+	1> [el]
+	1> 4 6
+		2> 3 4
+			3> 3 3
+				4> [Q102]
+				4> [Q103 Q108]
+			3> 3 2
+				4> [Q104]
+				4> [Q109 Q110]
+		2> 6 3
+			3> 4 4
+				4> 3 4
+					5> [Q114]
+					5> [Q117 Q119]
+				4> [Q116 Q118]
+			3> [Q121]
+	1> 6 4
+		2> 3 6
+			3> [Q111 Q115]
+			3> 5 3
+				4> [Q112 Q113]
+				4> [Q120]
+		2> 4 2
+			3> [Q105 Q106]
+			3> [Q107]
+
+end-mlbasis-section
+
+pbasis-section
+    Q102     HO     10   0.00       1.0    1.00
+    Q103     HO     10   0.00       1.0    1.00
+    Q104     HO     10   0.00       1.0    1.00
+    Q105     HO     10   0.00       1.0    1.00
+    Q106     HO     10   0.00       1.0    1.00
+    Q107     HO     10   0.00       1.0    1.00
+    Q108     HO     10   0.00       1.0    1.00
+    Q109     HO     10   0.00       1.0    1.00
+    Q110     HO     10   0.00       1.0    1.00
+    Q111     HO     10   0.00       1.0    1.00
+    Q112     HO     10   0.00       1.0    1.00
+    Q113     HO     10   0.00       1.0    1.00
+    Q114     HO     10   0.00       1.0    1.00
+    Q115     HO     10   0.00       1.0    1.00
+    Q116     HO     10   0.00       1.0    1.00
+    Q117     HO     10   0.00       1.0    1.00
+    Q118     HO     10   0.00       1.0    1.00
+    Q119     HO     10   0.00       1.0    1.00
+    Q120     HO     10   0.00       1.0    1.00
+		Q121     HO     10   0.00       1.0    1.00
+    el     el     52
+end-pbasis-section
+
+INTEGRATOR-SECTION
+ VMF
+ RK5 = 1.0d-7
+ proj-h
+#CMF/var =  0.02 ,   1.0E-5
+#BS/spf  =     7 ,   1.0E-5 ,   2.5E-04
+#SIL/A   =     5 ,   1.0E-5
+end-integrator-section
+
+INIT_WF-SECTION
+build
+init_state = 1
+    Q102     HO    0.00       0.00      1.0
+    Q103     HO    0.00       0.00      1.0
+    Q104     HO    0.00       0.00      1.0
+    Q105     HO    0.00       0.00      1.0
+    Q106     HO    0.00       0.00      1.0
+    Q107     HO    0.00       0.00      1.0
+    Q108     HO    0.00       0.00      1.0
+    Q109     HO    0.00       0.00      1.0
+    Q110     HO    0.00       0.00      1.0
+    Q111     HO    0.00       0.00      1.0
+    Q112     HO    0.00       0.00      1.0
+    Q113     HO    0.00       0.00      1.0
+    Q114     HO    0.00       0.00      1.0
+    Q115     HO    0.00       0.00      1.0
+    Q116     HO    0.00       0.00      1.0
+    Q117     HO    0.00       0.00      1.0
+    Q118     HO    0.00       0.00      1.0
+    Q119     HO    0.00       0.00      1.0
+    Q120     HO    0.00       0.00      1.0
+    Q121     HO    0.00       0.00      1.0
+end-build
+
+end-init_wf-section
+
+end-input
