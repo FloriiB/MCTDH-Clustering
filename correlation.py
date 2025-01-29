@@ -84,7 +84,7 @@ class Vertex():
         return
 
     def Clusterfunction(self,number_of_clusters, Min_number_of_clusters, depth = 0):
-        
+        # to check if the matrix should be divided into 2 clusters or more depending on the depth, after that spectral clustering is performed
         if number_of_clusters - depth >= Min_number_of_clusters:
             sc = SpectralClustering(number_of_clusters - depth, affinity='precomputed', n_init=100, random_state=69420)
             sc.fit(self.cluster_matrix)
@@ -93,7 +93,7 @@ class Vertex():
             sc.fit(self.cluster_matrix)
             
         All_clusters = []
-
+        # spectral clustering yields the labeling and this is now sorted to find the matching matrix elements or normal mode labels
         for cluster_index in range(number_of_clusters - depth if number_of_clusters - depth >= Min_number_of_clusters else Min_number_of_clusters):
             cluster = []
             for item_index, item in enumerate(sc.labels_):
@@ -104,18 +104,19 @@ class Vertex():
         
     
         All_cluster_matrices = []
-        
+        # now cluster matrix is divided according to the labels obtained before
         for cluster_index, cluster in enumerate(All_clusters):
             
             indicies = self.findlabels(cluster)
 
             sorted_matrix = extract_submatrix(self.cluster_matrix, indicies, indicies)
+            # we build a new vertex and add it to self.clusters, after that clusterfunction is called again (recursion) for this subclusters
             new_vertex = Vertex(sorted_matrix, cluster)
             All_cluster_matrices.append(new_vertex)
             if len(new_vertex.labels) >= 3:
                 new_depth = depth + 1
                 new_vertex.Clusterfunction(number_of_clusters, Min_number_of_clusters, new_depth)
-            
+           
         self.clusters = All_cluster_matrices
         
         return  
@@ -128,7 +129,7 @@ class Vertex():
                 
         return indicies
     
-    
+    # print the correlation matrix at the given vertex
     def __print__(self):
             
         plt.imshow(self.cluster_matrix, cmap='viridis', interpolation='nearest')
@@ -139,7 +140,8 @@ class Vertex():
         plt.show()
             
         return
-        
+    
+    # return structure of the tree    
     def returnTree(self, depth=0, layers=None):
 
         if layers is None:
@@ -153,7 +155,8 @@ class Vertex():
             cluster.plotTree(depth + 1, layers)
 
         return layers
-
+    
+    # more simple plot of the tree not in the mctdh format
     def plotTree(self, depth=0, tree_info=None):
         
         if tree_info is None:
@@ -170,6 +173,7 @@ class Vertex():
             
         return tree_info
     
+    # returns the max depth of the tree
     def findMAXdepth(self, depth = 0, maxDepth = None):
         
         if maxDepth == None:
@@ -186,36 +190,38 @@ class Vertex():
     
     def plotMCTDH(self, depth=0, tree_info=None, Nbr_of_SPF=str(2), initial = True):
         
+        # Header of the mctdh input
         if tree_info is None:
             print("\n---Exemplary MCTDH Input---\n")
             print("ML-basis-section\n")
             tree_info = ["ML-basis-section\n"]
-        
-        indent = "    " * depth
-        
+        # indentation depends on the depth of the tree
+        indent = "\t" * depth
+        # if there are not more subclusters -> plot the modes
         if not self.clusters:
             cluster_label = list2string(self.labels, spacing=True, brackets=True,MCTDH=True)
-            tree_info.append(f"{indent} {depth}> {cluster_label}")
-            print(f"{indent} {depth}> {cluster_label}")
+            tree_info.append(f"{indent}{depth}> {cluster_label}")
+            print(f"{indent}{depth}> {cluster_label}")
+        # If there are still subclusters we print the number of spf with the indentation. special case for the first layer as there is also the electronic branch
         else:
             if initial:
                 cluster_label = " ".join(Nbr_of_SPF for i in range(0,len(self.clusters)+1))
-                tree_info.append(f"{indent} {depth}> {cluster_label}")
-                print(f"{indent} {depth}> {cluster_label}")
+                tree_info.append(f"{indent}{depth}> {cluster_label}")
+                print(f"{indent}{depth}> {cluster_label}")
                 
                 depth2 = depth + 1
-                indent2 = "    " * depth2
-                tree_info.append(f"{indent2} {depth+1}> [el]")
-                print(f"{indent2} {depth+1}> [el]")
+                indent2 = "\t" * depth2
+                tree_info.append(f"{indent2}{depth+1}> [el]")
+                print(f"{indent2}{depth+1}> [el]")
                 
             else:
                 cluster_label = " ".join(Nbr_of_SPF for i in range(0,len(self.clusters)))
-                tree_info.append(f"{indent} {depth}> {cluster_label}")
-                print(f"{indent} {depth}> {cluster_label}")
-
+                tree_info.append(f"{indent}{depth}> {cluster_label}")
+                print(f"{indent}{depth}> {cluster_label}")
+        # recursive call of this function for all subclusters (lower vertices)
         for subcluster in self.clusters:
             subcluster.plotMCTDH(depth + 1, tree_info, Nbr_of_SPF, initial = False)
-        
+        # final note at the end
         if depth == 0:
             tree_info.append("\n end-mlbasis-section")
             print("\nend-mlbasis-section")    
@@ -225,14 +231,22 @@ class Vertex():
         
 def main():
     
-    if len(sys.argv) != 4:
-        print('Usage:\n python correlation.py <Matrix> <Max Number of Clusters> <Min Number of Clusters>\n')
-        sys.exit()
+    # if len(sys.argv) != 4:
+    #     print('Usage:\n python correlation.py <Matrix> <Max Number of Clusters> <Min Number of Clusters>\n')
+    #     sys.exit()
     
-    lines = readfile(sys.argv[1])
-    Max_number_of_clusters = int(sys.argv[2])
-    Min_number_of_clusters = int(sys.argv[3])
+    # lines = readfile(sys.argv[1])
+    # Max_number_of_clusters = int(sys.argv[2])
+    # Min_number_of_clusters = int(sys.argv[3])
   
+    # Read the input file and how many clusters the matrix should be divided into e.g. Max = 4 and Min = 2 will lead to a seperation of the original matrix
+    # into 4 clusters in the first layer, followed by 3 in the second layer and 2 in all remaining.
+    lines = readfile('corr_or.dat')
+    Max_number_of_clusters = 4
+    Min_number_of_clusters = 2
+    
+    # Entries below the threshold will be set to 0
+    threshold = 0
     
     print(f"--- Starting to Cluster for {Max_number_of_clusters} - {Min_number_of_clusters} Clusters ---")
     
@@ -243,15 +257,24 @@ def main():
     
     original_matrix = np.array(original_matrix)
     original_matrix = original_matrix.astype(float)
-    
+    # W = C - 1
     weight_matrix = original_matrix - np.diag(np.ones(original_matrix.shape[0]))
     
-    Headnote = Vertex(weight_matrix, [n for n in range(7, len(weight_matrix)+7)])
+    weight_matrix[weight_matrix < threshold] = 0
     
+    # Labels of the used correlation matrix, needs to have the same length as dimension of correlation matrix
+    indices = [7 ,8 ,9 ,11 ,12 ,14 ,15 ,16 ,17 ,18 ,19 ,20 ,21 ,22 ,23 ,24 ,25 ,26 ,27 ,28 ,31 ,35 ,36 ,38 ,40 ,41 ,46 ,66 ,71 ,72 ,190 ,191]
+    # indices =  [n for n in range(1, len(weight_matrix)+1)]
+    
+    # build first vertex
+    Headnote = Vertex(weight_matrix, indices)
+
+    # Start building the Tree
     Headnote.Clusterfunction(Max_number_of_clusters, Min_number_of_clusters)
     
     print("Max Depth:" + str(Headnote.findMAXdepth()))
     
+    # plot the tree in the mctdh format, also other ways of plotting are available (see above)
     tree_info = Headnote.plotMCTDH()
 
     return
