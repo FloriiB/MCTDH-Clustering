@@ -130,15 +130,18 @@ class Vertex():
         return indicies
     
     # print the correlation matrix at the given vertex
-    def __print__(self):
+    def plot(self):
             
         plt.imshow(self.cluster_matrix, cmap='viridis', interpolation='nearest')
         plt.colorbar()
         plt.xticks([])
         plt.yticks([])
-        plt.title("Heatmap of Cluster")
-        plt.show()
-            
+        plt.gca().invert_yaxis()
+        #plt.title("Heatmap of Correlation ")
+       
+        plt.savefig('correlation_matrix.eps', format='eps', bbox_inches='tight')
+        plt.show()   
+        
         return
     
     # return structure of the tree    
@@ -241,8 +244,8 @@ def main():
   
     # Read the input file and how many clusters the matrix should be divided into e.g. Max = 4 and Min = 2 will lead to a seperation of the original matrix
     # into 4 clusters in the first layer, followed by 3 in the second layer and 2 in all remaining.
-    lines = readfile('corr_or.dat')
-    Max_number_of_clusters = 4
+    lines = readfile('corr.dat')
+    Max_number_of_clusters = 2
     Min_number_of_clusters = 2
     
     # Entries below the threshold will be set to 0
@@ -257,13 +260,22 @@ def main():
     
     original_matrix = np.array(original_matrix)
     original_matrix = original_matrix.astype(float)
+    
+    original_matrix = np.abs(original_matrix)
+    
+    # original_matrix = (np.ones(original_matrix.shape) + original_matrix)/2
+    
     # W = C - 1
     weight_matrix = original_matrix - np.diag(np.ones(original_matrix.shape[0]))
     
+    
+    weight_matrix = np.abs(weight_matrix)
     weight_matrix[weight_matrix < threshold] = 0
     
     # Labels of the used correlation matrix, needs to have the same length as dimension of correlation matrix
-    indices = [7 ,8 ,9 ,11 ,12 ,14 ,15 ,16 ,17 ,18 ,19 ,20 ,21 ,22 ,23 ,24 ,25 ,26 ,27 ,28 ,31 ,35 ,36 ,38 ,40 ,41 ,46 ,66 ,71 ,72 ,190 ,191]
+    # indices = [7 ,8 ,9 ,11 ,12 ,14 ,15 ,16 ,17 ,18 ,19 ,20 ,21 ,22 ,23 ,24 ,25 ,26 ,27 ,28 ,31 ,35 ,36 ,38 ,40 ,41 ,46 ,66 ,71 ,72 ,190 ,191]
+    indices = [ 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 40, 41, 43, 45, 48, 49, 50, 54, 55, 57, 61, 66, 67, 68, 69, 71, 72, 77, 86, 96, 113, 114, 119, 133, 134, 135, 136, 142, 143, 144, 145, 148, 151, 161, 181, 188, 190, 191]
+
     # indices =  [n for n in range(1, len(weight_matrix)+1)]
     
     # build first vertex
@@ -273,6 +285,8 @@ def main():
     Headnote.Clusterfunction(Max_number_of_clusters, Min_number_of_clusters)
     
     print("Max Depth:" + str(Headnote.findMAXdepth()))
+    
+    Headnote.plot()
     
     # plot the tree in the mctdh format, also other ways of plotting are available (see above)
     tree_info = Headnote.plotMCTDH()

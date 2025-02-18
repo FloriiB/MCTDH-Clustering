@@ -134,8 +134,8 @@ def read_SPF(mctdh_output, numbers, timesteps):
 
 def main():
     
-    inputfile  = 'mctdh.inp'
-    outputfile = 'output'
+    inputfile  = 'mctdh.inp-threshold0'
+    outputfile = 'output-threshold0'
     
     
     lines, tfinal_value, tout_value, mlbasis_section, mctdh_start, mctdh_end = readMCTDHInp(inputfile)
@@ -148,17 +148,20 @@ def main():
     SPF_over_time_transposed = list(map(list, zip(*SPF_over_time)))
     
     
-    Averages = [np.mean(SPF[5:]) for SPF in SPF_over_time_transposed]
+    Averages = [np.mean(SPF[100:]) for SPF in SPF_over_time_transposed]
+    
+    print(np.mean(Averages))
     
     std = np.std(Averages)
     
+    print(std)
     
-    for item_idx, item in enumerate(Averages):
-        print("SPF Nr " + str(item_idx) + ": "+ str(item))
-    print("Standard Deviation: " + str(std))
+    # for item_idx, item in enumerate(Averages):
+    #     print("SPF Nr " + str(item_idx) + ": "+ str(item))
+    # print("Standard Deviation: " + str(std))
     
     for Y in SPF_over_time_transposed:
-        plt.plot(time, Y)
+        plt.plot(time[100:], Y[100:])
     plt.xlabel('time in fs')
     plt.ylabel('Coefficient of last SPF') 
     plt.yscale('log')
